@@ -52,6 +52,44 @@ class UI{
         document.getElementById('isbn').value = "";
     }
 }
+//Store books in LS
+class Store{
+    static getBooks(){
+        let books;
+        if(localStorage.getItem('books') === null){
+            books = [];
+        } else {
+            books = JSON.parse(localStorage.getItem('books'));
+        }
+        return books;
+    }
+    static addBook(book){
+        const books = Store.getBooks();
+        books.push(book);
+        localStorage.setItem('books',JSON.stringify(books)); // here first parameter is name, and second is book list
+
+    }
+    static displayBooks(){
+        const books = Store.getBooks();
+        books.forEach(function(book){
+            const ui = new UI();
+            ui.addBookToList(book);
+        });
+
+    }
+    //remove book by isbn value
+    static removeBook(isbn){
+        const books = Store.getBooks();
+        books.forEach(function(book,index){
+            if(book.isbn === isbn){
+                books.splice(index,1)
+            }
+        });
+        localStorage.setItem('books',JSON.stringify(books));
+    }
+}
+//DOM Reload event
+document.addEventListener('DOMContentLoaded',Store.displayBooks);
 //Event listerner
 document.getElementById('book-form').addEventListener('submit',
 function(e){
@@ -69,6 +107,9 @@ function(e){
     } else {
         //funtion protype of UI object
         ui.addBookToList(book);
+        //Store book details to LocalStorage
+        Store.addBook(book);
+        //Show Message
         ui.showMessage('Book Added!','success');
         //Clear fields
         ui.clearFields();
@@ -80,8 +121,10 @@ document.querySelector('#book-list').addEventListener('click',
 function(e){
     //ui object
     const ui = new UI();
-    //delete book
+    //delete book - here since any id or class to fetch we are using sibbling concept
     ui.deleteBook(e.target);
+    //Delete from local storage
+    Store.removeBook(e.target.parentElement.previousElementSibling.textContent);
     //show message
     ui.showMessage('Book removed','success');
     e.preventDefault();
